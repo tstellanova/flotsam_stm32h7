@@ -73,7 +73,6 @@ const osMessageQueueAttr_t myQueue01_attributes = {
   .mq_size = sizeof(myQueue01Buffer)
 };
 /* USER CODE BEGIN PV */
-uint8_t BlinkSpeed = 0, str[20];
 
 /* USER CODE END PV */
 
@@ -144,9 +143,6 @@ int main(void)
 
     /* Configure the User Button in EXTI Mode */
     BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-
-    /* Initiate BlinkSpeed variable */
-    BlinkSpeed = 1;
 
   /* USER CODE END 2 */
   /* Init scheduler */
