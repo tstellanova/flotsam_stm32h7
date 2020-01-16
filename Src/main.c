@@ -87,19 +87,37 @@ static void MX_RNG_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
+static void configure_user_leds(void);
+static void LED1_Blink(void);
 static void LED2_Blink(void);
+static void LED3_Blink(void);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-static void LED2_Blink(void)
+static void configure_user_leds(void)
 {
-    BSP_LED_Toggle(LED2);
+  BSP_LED_Init(LED1);
+  BSP_LED_Init(LED2);
+  BSP_LED_Init(LED3);
 }
 
+static void LED1_Blink(void)
+{
+    BSP_LED_Toggle(LED1);
+}
 
+static void LED2_Blink(void)
+{
+  BSP_LED_Toggle(LED2);
+}
+
+static void LED3_Blink(void)
+{
+  BSP_LED_Toggle(LED3);
+}
 /* USER CODE END 0 */
 
 /**
@@ -138,11 +156,10 @@ int main(void)
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
-    /* Configure LED2 on Nucleo */
-    BSP_LED_Init(LED2);
+  configure_user_leds();
 
-    /* Configure the User Button in EXTI Mode */
-    BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
+  /* Configure the User Button in EXTI Mode */
+  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
   /* USER CODE END 2 */
   /* Init scheduler */
@@ -484,6 +501,22 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+
+
+static void LED1_blink_cb (void *argument)
+{
+  int32_t arg = (int32_t)argument; // cast back argument '5'
+  // do something, i.e. set thread/event flags
+  LED1_Blink();
+}
+
+static void LED2_blink_cb (void *argument)
+{
+  int32_t arg = (int32_t)argument; // cast back argument '5'
+  // do something, i.e. set thread/event flags
+  LED2_Blink();
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -496,12 +529,27 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+  const uint32_t ticks_per_sec = osKernelGetTickFreq();
+  const uint32_t loop_delay = 5 * ticks_per_sec;
+  osTimerId_t periodic1_id, periodic2_id;
+  periodic1_id = osTimerNew(LED1_blink_cb, osTimerPeriodic, (void *) 5, NULL);
+  osTimerStart(periodic1_id, ticks_per_sec);
+  periodic2_id = osTimerNew(LED2_blink_cb, osTimerPeriodic, (void *) 5, NULL); // (void*)5 is passed as an argument
+  osTimerStart(periodic2_id, ticks_per_sec / 2);
+
+  osDelay(loop_delay);
+
+  osTimerStop(periodic2_id);
+  osTimerDelete(periodic2_id);
+
   /* Infinite loop */
-  for(;;)
-  {
-      osDelay(250);
-      LED2_Blink();
+  for(;;) {
+    osDelay(loop_delay);
   }
+  osTimerStop(periodic1_id);
+  osTimerDelete(periodic1_id);
+
+
   /* USER CODE END 5 */ 
 }
 
