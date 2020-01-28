@@ -88,9 +88,6 @@ void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 static void configure_user_leds(void);
-static void LED1_Blink(void);
-static void LED2_Blink(void);
-static void LED3_Blink(void);
 
 /* USER CODE END PFP */
 
@@ -104,20 +101,7 @@ static void configure_user_leds(void)
   BSP_LED_Init(LED3);
 }
 
-static void LED1_Blink(void)
-{
-    BSP_LED_Toggle(LED1);
-}
 
-static void LED2_Blink(void)
-{
-  BSP_LED_Toggle(LED2);
-}
-
-static void LED3_Blink(void)
-{
-  BSP_LED_Toggle(LED3);
-}
 /* USER CODE END 0 */
 
 /**
@@ -505,18 +489,18 @@ static void MX_GPIO_Init(void)
 
 static void LED1_blink_cb (void *argument)
 {
-  int32_t arg = (int32_t)argument; // cast back argument '5'
-  // do something, i.e. set thread/event flags
-  LED1_Blink();
+  BSP_LED_Toggle(LED1);
 }
 
 static void LED2_blink_cb (void *argument)
 {
-  int32_t arg = (int32_t)argument; // cast back argument '5'
-  // do something, i.e. set thread/event flags
-  LED2_Blink();
+  BSP_LED_Toggle(LED2);
 }
 
+static void LED3_blink_cb (void *argument)
+{
+  BSP_LED_Toggle(LED3);
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -531,16 +515,18 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
   const uint32_t ticks_per_sec = osKernelGetTickFreq();
   const uint32_t loop_delay = 5 * ticks_per_sec;
-  osTimerId_t periodic1_id, periodic2_id;
+  osTimerId_t periodic1_id, periodic2_id, periodic3_id;
   periodic1_id = osTimerNew(LED1_blink_cb, osTimerPeriodic, (void *) 5, NULL);
   osTimerStart(periodic1_id, ticks_per_sec);
   periodic2_id = osTimerNew(LED2_blink_cb, osTimerPeriodic, (void *) 5, NULL); // (void*)5 is passed as an argument
   osTimerStart(periodic2_id, ticks_per_sec / 2);
+  periodic3_id = osTimerNew(LED3_blink_cb, osTimerPeriodic, (void *) 5, NULL); // (void*)5 is passed as an argument
 
   osDelay(loop_delay);
 
   osTimerStop(periodic2_id);
   osTimerDelete(periodic2_id);
+  osTimerStart(periodic3_id, ticks_per_sec / 2);
 
   /* Infinite loop */
   for(;;) {
@@ -548,7 +534,7 @@ void StartDefaultTask(void *argument)
   }
   osTimerStop(periodic1_id);
   osTimerDelete(periodic1_id);
-
+  osTimerStop(periodic3_id);
 
   /* USER CODE END 5 */ 
 }
